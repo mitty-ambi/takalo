@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', function () {
         else if (!/^[0-9]+$/.test(tel)) errors.telephone = 'Le téléphone ne doit contenir que des chiffres.';
 
         // clear previous invalid state
-        ['nom','prenom','email','password','confirm_password','telephone'].forEach(function(f){
+        ['nom', 'prenom', 'email', 'password', 'confirm_password', 'telephone'].forEach(function (f) {
             var el = document.getElementById(f);
             if (el) el.classList.remove('is-invalid');
             var feed = document.getElementById(f + 'Error');
@@ -46,7 +46,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             // mark fields and show messages
-            Object.keys(errors).forEach(function(k){
+            Object.keys(errors).forEach(function (k) {
                 var el = document.getElementById(k);
                 if (el) el.classList.add('is-invalid');
                 var feed = document.getElementById(k + 'Error');

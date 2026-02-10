@@ -29,7 +29,12 @@ CREATE TABLE Objet(
     FOREIGN KEY (id_categorie) REFERENCES Categorie(id_categorie) ON DELETE CASCADE,
     FOREIGN KEY (id_user) REFERENCES Utilisateur(id_user) ON DELETE CASCADE
 );
-
+CREATE TABLE image_objet(
+    id_image SERIAL PRIMARY KEY,
+    id_objet INT NOT NULL,
+    url_image VARCHAR(255) NOT NULL,
+    FOREIGN KEY (id_objet) REFERENCES Objet(id_objet) ON DELETE CASCADE
+);
 -- Table Echange
 CREATE TABLE Echange(
     id_echange SERIAL PRIMARY KEY,

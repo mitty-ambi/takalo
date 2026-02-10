@@ -1,6 +1,3 @@
-<?php
-// Vue d'inscription simplifiée — on affiche les valeurs sans échappement
-?>
 <!DOCTYPE html>
 <html lang="fr">
 

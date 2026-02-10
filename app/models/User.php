@@ -38,5 +38,18 @@ class User
             throw $e;
         }
     }
+    public function login()
+    {
+        $DBH = \Flight::db();
+        $sql = $DBH->prepare("SELECT id_user, mdp_hash FROM Utilisateur WHERE email = ?");
+        $sql->execute([$this->email]);
+        $user = $sql->fetch(\PDO::FETCH_ASSOC);
+
+        if ($user && password_verify($this->mdp_hash, $user['mdp_hash'])) {
+            return $user['id_user'];
+        }
+
+        return false;
+    }
 }
 ?>

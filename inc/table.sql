@@ -1,26 +1,26 @@
-CREATE DATABASE takalo;
+-- Création de la base de données
+CREATE DATABASE IF NOT EXISTS takalo;
 USE takalo;
-CREATE TYPE statut_echange AS ENUM ('en attente', 'refuse', 'accepte');
 
 -- Table Catégorie
-CREATE TABLE Categorie(
-    id_categorie SERIAL PRIMARY KEY,
+CREATE TABLE Categorie (
+    id_categorie INT PRIMARY KEY AUTO_INCREMENT,
     nom_categorie VARCHAR(100) NOT NULL
 );
 
 -- Table Utilisateur (note: "User" est un mot réservé, on utilise "Utilisateur")
 CREATE TABLE Utilisateur(
-    id_user SERIAL PRIMARY KEY,
+    id_user INT PRIMARY KEY AUTO_INCREMENT,
     nom VARCHAR(100) NOT NULL,
     prenom VARCHAR(100) NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
     mdp_hash VARCHAR(255) NOT NULL,
-    type_user VARCHAR(20) CHECK (type_user IN ('normal', 'admin')) DEFAULT 'normal'
+    type_user VARCHAR(20) DEFAULT 'normal'
 );
 
 -- Table Objet
 CREATE TABLE Objet(
-    id_objet SERIAL PRIMARY KEY,
+    id_objet INT PRIMARY KEY AUTO_INCREMENT,
     nom_objet VARCHAR(100) NOT NULL,
     id_categorie INT NOT NULL,
     id_user INT NOT NULL,
@@ -30,27 +30,37 @@ CREATE TABLE Objet(
     FOREIGN KEY (id_user) REFERENCES Utilisateur(id_user) ON DELETE CASCADE
 );
 
--- Table Echange
+-- Table Echange (avec statut sous forme de VARCHAR au lieu de ENUM PostgreSQL)
 CREATE TABLE Echange(
-    id_echange SERIAL PRIMARY KEY,
+    id_echange INT PRIMARY KEY AUTO_INCREMENT,
     id_user_1 INT NOT NULL,
     id_user_2 INT NOT NULL,
-    date_demande DATE DEFAULT CURRENT_DATE,
+    date_demande DATE DEFAULT (CURRENT_DATE),
     date_finalisation DATE,
-    statut statut_echange DEFAULT 'en attente',
+    statut VARCHAR(20) DEFAULT 'en attente',
     FOREIGN KEY (id_user_1) REFERENCES Utilisateur(id_user) ON DELETE CASCADE,
     FOREIGN KEY (id_user_2) REFERENCES Utilisateur(id_user) ON DELETE CASCADE,
-    CHECK (id_user_1 <> id_user_2) -- Empêche un échange avec soi-même
+    CONSTRAINT chk_users_different CHECK (id_user_1 <> id_user_2) -- Empêche un échange avec soi-même
 );
 
 -- Table Echange_fille (détails des objets échangés)
 CREATE TABLE Echange_fille(
-    id_echange_fille SERIAL PRIMARY KEY,
+    id_echange_fille INT PRIMARY KEY AUTO_INCREMENT,
     id_echange_mere INT NOT NULL,
     id_objet INT NOT NULL,
-    quantite INT DEFAULT 1 CHECK (quantite > 0),
+    quantite INT DEFAULT 1,
     id_proprietaire INT NOT NULL,
     FOREIGN KEY (id_echange_mere) REFERENCES Echange(id_echange) ON DELETE CASCADE,
     FOREIGN KEY (id_objet) REFERENCES Objet(id_objet) ON DELETE CASCADE,
     FOREIGN KEY (id_proprietaire) REFERENCES Utilisateur(id_user) ON DELETE CASCADE
 );
+
+-- Ajout des contraintes CHECK pour MySQL (version 8.0.16+)
+ALTER TABLE Utilisateur ADD CONSTRAINT chk_type_user 
+CHECK (type_user IN ('normal', 'admin'));
+
+ALTER TABLE Echange ADD CONSTRAINT chk_statut 
+CHECK (statut IN ('en attente', 'refuse', 'accepte'));
+
+ALTER TABLE Echange_fille ADD CONSTRAINT chk_quantite 
+CHECK (quantite > 0);

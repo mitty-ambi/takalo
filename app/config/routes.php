@@ -1,81 +1,50 @@
 <?php
+use app\middlewares\SecurityHeadersMiddleware;
 use flight\Engine;
 use flight\net\Router;
+use app\models\User;
+
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+
+/**
+ * @var Router $router
+ * @var Engine $app
+ */
+
 $router->group('', function (Router $router) use ($app) {
-
     $router->get('/', function () use ($app) {
-        $data = [
-            'errors' => ['nom' => '', 'prenom' => '', 'email' => '', 'password' => '', 'confirm_password' => '', 'telephone' => ''],
-            'values' => ['nom' => '', 'prenom' => '', 'email' => '', 'telephone' => ''],
-            'success' => false
-        ];
-        Flight::render('register', $data);
+        $app->render('register', ['ls_donnees_prod' => 'a']);
     });
-
+    $router->get('/login', function () use ($app) {
+        $app->render('login', ['connected' => '1']);
+    });
     $router->post('/register', function () use ($app) {
-        if (session_status() !== PHP_SESSION_ACTIVE)
-            session_start();
+        echo "[DEBUG] POST /register recu" . PHP_EOL;
+        echo "[DEBUG] Data: " . json_encode($_POST) . PHP_EOL;
 
-        $input = $_POST;
-        $errors = ['nom' => '', 'prenom' => '', 'email' => '', 'password' => '', 'confirm_password' => '', 'telephone' => ''];
-        $values = [
-            'nom' => trim((string) ($input['nom'] ?? '')),
-            'prenom' => trim((string) ($input['prenom'] ?? '')),
-            'email' => trim((string) ($input['email'] ?? '')),
-            'telephone' => preg_replace('/\s+/', '', trim((string) ($input['telephone'] ?? ''))),
-        ];
+        $nom = $_POST['nom'] ?? '';
+        $prenom = $_POST['prenom'] ?? '';
+        $email = $_POST['email'] ?? '';
+        $password = $_POST['password'] ?? '';
+        $type_user = $_POST['type_user'] ?? 'normal';
 
-        $password = (string) ($input['password'] ?? '');
-        $confirm = (string) ($input['confirm_password'] ?? '');
+        $hash = password_hash($password, PASSWORD_DEFAULT);
+        echo "[DEBUG] Hash genere pour mdp" . PHP_EOL;
 
-        if (mb_strlen($values['nom']) < 2)
-            $errors['nom'] = "Le nom doit contenir au moins 2 caractères.";
-        if (mb_strlen($values['prenom']) < 2)
-            $errors['prenom'] = "Le prénom doit contenir au moins 2 caractères.";
+        $user = new User($nom, $prenom, $email, $hash, $type_user);
+        echo "[DEBUG] Objet User cree" . PHP_EOL;
 
-        if ($values['email'] === '')
-            $errors['email'] = "L'email est obligatoire.";
-        elseif (!filter_var($values['email'], FILTER_VALIDATE_EMAIL))
-            $errors['email'] = "L'email n'est pas valide (ex: nom@domaine.com).";
-
-        if (strlen($password) < 8)
-            $errors['password'] = "Le mot de passe doit contenir au moins 8 caractères.";
-
-        if (strlen($confirm) < 8)
-            $errors['confirm_password'] = "Veuillez confirmer le mot de passe (min 8 caractères).";
-        elseif ($password !== $confirm) {
-            $errors['confirm_password'] = "Les mots de passe ne correspondent pas.";
-            if ($errors['password'] === '')
-                $errors['password'] = "Vérifiez le mot de passe et sa confirmation.";
+        try {
+            $user->insert_user();
+            echo "[DEBUG] Insertion reussie!" . PHP_EOL;
+        } catch (\Throwable $e) {
+            echo "[DEBUG CATCH] Erreur lors insertion: " . $e->getMessage() . PHP_EOL;
+            error_log('Insert user error: ' . $e->getMessage());
         }
 
-        $tel = $values['telephone'];
-        if (strlen($tel) < 8 || strlen($tel) > 15)
-            $errors['telephone'] = "Le téléphone doit contenir entre 8 et 15 chiffres.";
-        elseif (!preg_match('/^[0-9]+$/', $tel))
-            $errors['telephone'] = "Le téléphone ne doit contenir que des chiffres.";
-
-        $ok = true;
-        foreach ($errors as $m) {
-            if ($m !== '') {
-                $ok = false;
-                break;
-            }
-        }
-
-        if ($ok) {
-            $_SESSION['user'] = [
-                'nom' => $values['nom'],
-                'prenom' => $values['prenom'],
-                'email' => $values['email'],
-                'telephone' => $values['telephone'],
-            ];
-            $data = ['errors' => $errors, 'values' => ['nom' => '', 'prenom' => '', 'email' => '', 'telephone' => ''], 'success' => true];
-            Flight::render('register', $data);
-            return;
-        }
-
-        Flight::render('register', ['errors' => $errors, 'values' => $values, 'success' => false]);
+        $app->render('login', ['connected' => '1']);
     });
 
-}, []);
+}, [SecurityHeadersMiddleware::class]);

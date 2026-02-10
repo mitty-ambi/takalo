@@ -79,16 +79,25 @@ if (Debugger::$showBar === true && php_sapi_name() !== 'cli') {
  **********************************************/
 // Uncomment and configure the following for your database:
 
-// MySQL Example:
-$dsn = 'mysql:host=' . $config['database']['host'] . ';dbname=' . $config['database']['dbname'] . ';charset=utf8mb4';
+// Build DSN based on configured driver
+$driver = $config['database']['driver'] ?? 'mysql';
+$host = $config['database']['host'] ?? '127.0.0.1';
+$port = $config['database']['port'] ?? null;
+$dbname = $config['database']['dbname'] ?? null;
 
-// SQLite Example:
-// $dsn = 'sqlite:' . $config['database']['file_path'];
+if ($driver === 'pgsql') {
+	$dsn = 'pgsql:host=' . $host . ($port ? ';port=' . $port : '') . ';dbname=' . $dbname;
+} elseif ($driver === 'sqlite') {
+	$dsn = 'sqlite:' . $config['database']['file_path'];
+} else {
+	// default to MySQL
+	$dsn = 'mysql:host=' . $host . ($port ? ';port=' . $port : '') . ';dbname=' . $dbname . ';charset=utf8mb4';
+}
 
 // Register Flight::db() service
 // In development, use PdoQueryCapture to log queries; in production, use PdoWrapper for performance.
 $pdoClass = Debugger::$showBar === true ? PdoQueryCapture::class : PdoWrapper::class;
-$app->register('db', $pdoClass, [ $dsn, $config['database']['user'] ?? null, $config['database']['password'] ?? null ]);
+$app->register('db', $pdoClass, [$dsn, $config['database']['user'] ?? null, $config['database']['password'] ?? null]);
 
 /**********************************************
  *         Third-Party Integrations           *

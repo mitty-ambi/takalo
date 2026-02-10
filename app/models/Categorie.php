@@ -11,8 +11,9 @@ class Categorie
     }
     public function insert()
     {
-        $DBH = Connection::dbconnect();
-        $stmt = $DBH->prepare("INSERT INTO categorie (nom_categorie) VALUES (:nom_categorie)");
+        // Utiliser la connexion fournie par Flight (config.php/services.php)
+        $DBH = \Flight::db();
+        $stmt = $DBH->prepare("INSERT INTO Categorie (nom_categorie) VALUES (:nom_categorie)");
         $stmt->bindParam(':nom_categorie', $this->nom_categorie);
         return $stmt->execute();
     }

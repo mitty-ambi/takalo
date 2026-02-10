@@ -24,23 +24,17 @@ class User
     {
         try {
             $DBH = \Flight::db();
-            echo "[DEBUG] Connexion DB obtenue: " . get_class($DBH) . PHP_EOL;
-
             $sql = $DBH->prepare("INSERT INTO Utilisateur (nom,prenom,email,mdp_hash,type_user) VALUES (?,?,?,?,?)");
-            echo "[DEBUG] Requete preparee" . PHP_EOL;
 
             $sql->bindValue(1, $this->nom, \PDO::PARAM_STR);
             $sql->bindValue(2, $this->prenom, \PDO::PARAM_STR);
             $sql->bindValue(3, $this->email, \PDO::PARAM_STR);
             $sql->bindValue(4, $this->mdp_hash, \PDO::PARAM_STR);
             $sql->bindValue(5, $this->type_user, \PDO::PARAM_STR);
-            echo "[DEBUG] Valeurs liees (nom={$this->nom}, prenom={$this->prenom}, email={$this->email}, type={$this->type_user})" . PHP_EOL;
 
             $result = $sql->execute();
-            echo "[DEBUG] Insertion reussie: " . ($result ? "OUI" : "NON") . PHP_EOL;
             return $result;
         } catch (\Exception $e) {
-            echo "[DEBUG ERROR] " . $e->getMessage() . PHP_EOL;
             throw $e;
         }
     }

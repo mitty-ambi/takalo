@@ -1,14 +1,11 @@
--- Création de la base de données
 CREATE DATABASE IF NOT EXISTS takalo;
 USE takalo;
 
--- Table Catégorie
 CREATE TABLE Categorie (
     id_categorie INT PRIMARY KEY AUTO_INCREMENT,
     nom_categorie VARCHAR(100) NOT NULL
 );
 
--- Table Utilisateur (note: "User" est un mot réservé, on utilise "Utilisateur")
 CREATE TABLE Utilisateur(
     id_user INT PRIMARY KEY AUTO_INCREMENT,
     nom VARCHAR(100) NOT NULL,
@@ -18,7 +15,6 @@ CREATE TABLE Utilisateur(
     type_user VARCHAR(20) DEFAULT 'normal'
 );
 
--- Table Objet
 CREATE TABLE Objet(
     id_objet INT PRIMARY KEY AUTO_INCREMENT,
     nom_objet VARCHAR(100) NOT NULL,
@@ -30,7 +26,6 @@ CREATE TABLE Objet(
     FOREIGN KEY (id_user) REFERENCES Utilisateur(id_user) ON DELETE CASCADE
 );
 
--- Table Echange (avec statut sous forme de VARCHAR au lieu de ENUM PostgreSQL)
 CREATE TABLE Echange(
     id_echange INT PRIMARY KEY AUTO_INCREMENT,
     id_user_1 INT NOT NULL,
@@ -40,10 +35,9 @@ CREATE TABLE Echange(
     statut VARCHAR(20) DEFAULT 'en attente',
     FOREIGN KEY (id_user_1) REFERENCES Utilisateur(id_user) ON DELETE CASCADE,
     FOREIGN KEY (id_user_2) REFERENCES Utilisateur(id_user) ON DELETE CASCADE,
-    CONSTRAINT chk_users_different CHECK (id_user_1 <> id_user_2) -- Empêche un échange avec soi-même
+    CONSTRAINT chk_users_different CHECK (id_user_1 <> id_user_2)
 );
 
--- Table Echange_fille (détails des objets échangés)
 CREATE TABLE Echange_fille(
     id_echange_fille INT PRIMARY KEY AUTO_INCREMENT,
     id_echange_mere INT NOT NULL,
@@ -55,7 +49,6 @@ CREATE TABLE Echange_fille(
     FOREIGN KEY (id_proprietaire) REFERENCES Utilisateur(id_user) ON DELETE CASCADE
 );
 
--- Ajout des contraintes CHECK pour MySQL (version 8.0.16+)
 ALTER TABLE Utilisateur ADD CONSTRAINT chk_type_user 
 CHECK (type_user IN ('normal', 'admin'));
 
